@@ -17,15 +17,18 @@ for i in range(1,3):
         exit(1)
 
 # take in input, output, and venv directories as arguments
-inputPath = sys.argv[1]
-croppedPath = sys.argv[2]
-envPath = sys.argv[3]
+inputPath = os.path.normpath(sys.argv[1])
+croppedPath = os.path.normpath(sys.argv[2])
+envPath = os.path.normpath(sys.argv[3])
 
 # get all uncropped files in inputPath
 inputFiles = glob('{0}/*.pdf'.format(inputPath))
 
 # activate virtual environment
-activate_this = '{0}/bin/activate_this.py'.format(envPath)
+if sys.platform == "darwin":
+    activate_this = os.path.join(envPath, 'bin', 'activate_this.py')
+elif sys.platform == "win32":
+    activate_this = os.path.join(envPath, 'Scripts', 'activate_this.py')
 execfile(activate_this, dict(__file__=activate_this))
 os.chdir('{0}'.format(envPath))
 
@@ -33,4 +36,9 @@ os.chdir('{0}'.format(envPath))
 for inputFile in inputFiles:
     croppedFile = inputFile[len(inputPath)+1:]
     croppedFile = os.path.join(croppedPath, croppedFile)
-    os.system('python bin/pdf-crop-margins -o "{1}" -p 2 "{0}"'.format(inputFile, croppedFile))
+    
+	# call pdf-crop-margins from command line
+    if sys.platform == "darwin":
+        os.system('python bin/pdf-crop-margins -o "{1}" -p 2 "{0}"'.format(inputFile, croppedFile))
+    elif sys.platform == "win32":
+        os.system('pdf-crop-margins -o "{1}" -p 2 -pdl "{0}"'.format(inputFile, croppedFile))
